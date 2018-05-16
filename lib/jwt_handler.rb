@@ -59,8 +59,7 @@ module JWTHandler
 		end
 
 		def current_user
-      # return extract_jwt_payload['user']
-     		return "test"
+      		return extract_jwt_payload['user']
   	end
 
   end
