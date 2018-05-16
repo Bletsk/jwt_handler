@@ -12,7 +12,7 @@ module JWTHandler
   	  return if ['api/v1/auth'].include?(params[:controller])
 
       # default_redirect_url = 'http://localhost:3000/organization/1'
-      default_redirect_url = url_for(controller: "organization", action: "show", id: Organization.first.id)
+      default_redirect_url = 'http://localhost:3000/organization'
       jwt_validation_path = 'http://localhost:3001/api/v1/session/validate'
 
       # puts "ACHTUNG"
