@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'jwt'
 
 module JWTHandler
   extend ActiveSupport::Concern
