@@ -12,7 +12,7 @@ module JWTHandler
 	    attr_reader :arguable_opts
 
 	    private
-	    def arguable(opts={})
+	    def parameters(opts={})
 	    	@arguable_opts = opts
 	    end
 	end
@@ -20,39 +20,34 @@ module JWTHandler
     def validate_token
   		return if ['api/v1/auth'].include?(params[:controller])
 
-		# default_redirect_url = 'http://localhost:3000/organization/1'
-		# default_redirect_url = 'http://localhost:3000/organization'
-		jwt_validation_path = 'http://localhost:3001/api/v1/session/validate'
-
-		# puts "ACHTUNG"
-		# request.referer
-		# referer = request.referer || default_redirect_url
-		referer = get_arguable_opts["referer"] || ''
+		jwt_validation_path = get_validation_link_from_opts
+		referer = get_ref_link_from_opts
 
 		headers = { 
 		"Authorization"  => get_jwt()
 		}
-		#Request for validating and updating jwt
+
 		validation_response = HTTParty.post(jwt_validation_path, :headers => headers, body:{redirect_url:referer})
 
 		parsed_body = JSON.parse(validation_response.body)
 		#checkout for token validationn response if it return error then redirect to the auth page
 		if !parsed_body['error'].blank?
+			p "parsed_body error"
 
-		redirect_url = parsed_body['sign_in_url'] + "?redirect_url=#{referer}" #we have to send back redirection url
+			redirect_url = parsed_body['sign_in_url']
+			if !referer.to_s.blank?
+				redirect_url += "?redirect_url=#{referer}" #we have to send back redirection url
+			end
 
-		if !request.headers['HTTP_ACCEPT'].include?("application/json") #checkout for ajax requests
-			redirect_to redirect_url
-		else
-			render json:{redirect_url:redirect_url}, status: 302
-		end
+			if !request.headers['HTTP_ACCEPT'].include?("application/json") #checkout for ajax requests
+				redirect_to redirect_url
+			else
+				render json:{redirect_url:redirect_url}, status: 302
+			end
 		else
 			if !parsed_body['updated_token'].blank? #if jwt updated
-		  	 # cookies['JWT'] = request.cookies["JWT"] = {:value => parsed_body['updated_token'], domain: 'localhost'}
-		   # puts 'Creating cookies' + cookies['JWT'].to_json
-			     cookies['JWT'] = response.set_cookie "JWT", { :value => parsed_body['updated_token'], domain: 'localhost'}
+			    cookies['JWT'] = response.set_cookie "JWT", { :value => parsed_body['updated_token'], domain: 'localhost'}
 		    end
-		# p "Token valid"
 		end
 	end
 
@@ -70,6 +65,8 @@ module JWTHandler
   		return extract_jwt_payload['user']
 		end
 
+	#Получаем данные из переданных аргументов
+	private
 	def get_arguable_opts
 	    if self.class.arguable_opts.blank? && self.class.superclass.arguable_opts.present?
 	    	opts = self.class.superclass.arguable_opts
@@ -79,6 +76,36 @@ module JWTHandler
 	    	opts = self.class.arguable_opts
 	    end
 	    opts || {}
+  	end
+
+  	#Проверяем в параметрах наличие реферальной ссылки
+  	private
+  	def get_ref_link_from_opts
+  		opts = get_arguable_opts
+  		if !opts[:ref_link].to_s.blank?
+  			return opts[:ref_link]
+  		end
+
+  		if !opts[:controller].to_s.blank? && !opts[:method].to_s.blank?
+  			if !opts[:id].to_s.blank?
+  				return url_for(controller: opts[:controller], action: opts[:method], id: opts[:id])
+  			end
+
+  			return url_for(controller: opts[:controller], action: opts[:method])
+  		end
+
+  		return 'http://localhost:3000/organization'
+  	end
+
+  	#Проверяем в параметрах наличие ссылки на сервер валидации
+  	def get_validation_link_from_opts
+  		opts = get_arguable_opts
+
+  		if(!opts[:validation_link].to_s.blank?)
+  			return opts[:validation_link]
+  		end
+
+  		return 'http://localhost:3001/api/v1/session/validate'
   	end
 
   end
