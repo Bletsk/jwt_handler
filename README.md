@@ -1,8 +1,17 @@
 # JwtHandler
-Short description and motivation.
+Simple Token handler for back-end ruby micro-services.
 
 ## Usage
-How to use my plugin.
+Include jwt_handler in your application_controller.rb and pass it links for authorization server and for default referer:
+```ruby
+include 'JWThandler'
+jwt_parameters ref_link: 'http://default-referer-url', validation_link: 'http://auth-server-url' 
+```
+
+Additionally, instead of ref_link you can specify controller and method for default refering:
+```ruby
+jwt_parameters controller: 'controller-name', method: 'method-name', id: 'optional-id'
+```
 
 ## Installation
 Add this line to your application's Gemfile:

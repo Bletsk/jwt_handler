@@ -12,7 +12,7 @@ module JWTHandler
 	    attr_reader :arguable_opts
 
 	    private
-	    def parameters(opts={})
+	    def jwt_parameters(opts={})
 	    	@arguable_opts = opts
 	    end
 	end
