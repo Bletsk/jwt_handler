@@ -5,7 +5,7 @@ Simple Token handler for back-end ruby micro-services.
 Include jwt_handler in your application_controller.rb and pass it links for authorization server and for default referer:
 ```ruby
 include 'JWThandler'
-jwt_parameters ref_link: 'http://default-referer-url', validation_link: 'http://auth-server-url' 
+jwt_parameters ref_link: 'http://default-referer-url', auth_server_url: 'http://auth-server-url' 
 ```
 
 Additionally, instead of ref_link you can specify controller and method for default refering:

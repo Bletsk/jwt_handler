@@ -20,7 +20,7 @@ module JWTHandler
     def validate_token
   		return if ['api/v1/auth'].include?(params[:controller])
 
-		jwt_validation_path = get_validation_link_from_opts
+		jwt_validation_path = get_auth_server_url_from_opts
 		referer = get_ref_link_from_opts
 
 		headers = { 
@@ -98,11 +98,11 @@ module JWTHandler
   	end
 
   	#Проверяем в параметрах наличие ссылки на сервер валидации
-  	def get_validation_link_from_opts
+  	def get_auth_server_url_from_opts
   		opts = get_arguable_opts
 
-  		if(!opts[:validation_link].to_s.blank?)
-  			return opts[:validation_link]
+  		if(!opts[:auth_server_url].to_s.blank?)
+  			return opts[:auth_server_url]
   		end
 
   		return 'http://localhost:3001/api/v1/session/validate'
