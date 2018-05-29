@@ -46,7 +46,7 @@ module JWTHandler
 			end
 		else
 			if !parsed_body['updated_token'].blank? #if jwt updated
-			    cookies['JWT'] = response.set_cookie "JWT", { :value => parsed_body['updated_token'], domain: 'localhost'}
+			    cookies['JWT'] = response.set_cookie "JWT", { :value => parsed_body['updated_token'], :domain => get_domain_name_from_opts}
 		    end
 		end
 	end
@@ -86,12 +86,12 @@ module JWTHandler
   			return opts[:ref_link]
   		end
 
-  		if !opts[:controller].to_s.blank? && !opts[:method].to_s.blank?
+  		if !opts[:controller].to_s.blank? && !opts[:action].to_s.blank?
   			if !opts[:id].to_s.blank?
-  				return url_for(controller: opts[:controller], action: opts[:method], id: opts[:id])
+  				return url_for(controller: opts[:controller], action: opts[:action], id: opts[:id])
   			end
 
-  			return url_for(controller: opts[:controller], action: opts[:method])
+  			return url_for(controller: opts[:controller], action: opts[:action])
   		end
 
   		return 'http://localhost:3000/organization'
@@ -108,5 +108,15 @@ module JWTHandler
   		return 'http://localhost:3001/api/v1/session/validate'
   	end
 
+  	# Проверяем в параметрах наличие имени домена
+  	def get_domain_name_from_opts
+  		opts = get_arguable_opts
+
+  		if(!opts[:domain_name].to_s.blank?)
+  			return opts[:domain_name]
+  		end
+
+  		return 'localhost'
+  	end
   end
 end
