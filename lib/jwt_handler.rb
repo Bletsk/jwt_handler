@@ -21,6 +21,7 @@ module JWTHandler
   		return if ['api/v1/auth'].include?(params[:controller])
 
 		jwt_validation_path = get_validation_path_from_opts
+		# p jwt_validation_path
 		referer = get_ref_link_from_opts
 
 		headers = { 
@@ -30,6 +31,7 @@ module JWTHandler
 		validation_response = HTTParty.post(jwt_validation_path, :headers => headers, body:{redirect_url:referer})
 
 		parsed_body = JSON.parse(validation_response.body)
+
 		#checkout for token validationn response if it return error then redirect to the auth page
 		if !parsed_body['error'].blank?
 			p "parsed_body error"
