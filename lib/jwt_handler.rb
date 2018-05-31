@@ -2,12 +2,12 @@ require 'active_support/concern'
 require 'jwt'
 require 'httparty'
 
-include ActionController::MimeResponds
-
 module JWTHandler
   extend ActiveSupport::Concern
   included do
 
+  	include ActionController::MimeResponds
+	include ActionController::Cookies
     before_action :validate_token
 
     module ClassMethods
