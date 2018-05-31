@@ -35,27 +35,38 @@ module JWTHandler
 
 		#checkout for token validationn response if it return error then redirect to the auth page
 		if !parsed_body['error'].blank?
-			p "parsed_body error"
+			# p "parsed_body error"
 
-			respond_to do |format|
-				format.json {
-					render json: {
-			        	error: "Error: Not authorized \\ Wrong token"
-					}, :status => 401
-				}
-				format.html {
-					redirect_url = parsed_body['sign_in_url']
-					if !referer.to_s.blank?
-						redirect_url += "?redirect_url=#{referer}" #we have to send back redirection url
-					end
-
-					if !request.headers['HTTP_ACCEPT'].include?("application/json") #checkout for ajax requests
-						redirect_to redirect_url
-					else
-						render json:{redirect_url:redirect_url}, status: 302
-					end
-				}
+			redirect_url = parsed_body['sign_in_url']
+			if !referer.to_s.blank?
+				redirect_url += "?redirect_url=#{referer}" #we have to send back redirection url
 			end
+
+			if !request.headers['HTTP_ACCEPT'].include?("application/json") #checkout for ajax requests
+				redirect_to redirect_url
+			else
+				render json:{redirect_url:redirect_url}, status: 302
+			end
+
+			# respond_to do |format|
+			# 	format.json {
+			# 		render json: {
+			#         	error: "Error: Not authorized \\ Wrong token"
+			# 		}, :status => 401
+			# 	}
+			# 	format.html {
+			# 		redirect_url = parsed_body['sign_in_url']
+			# 		if !referer.to_s.blank?
+			# 			redirect_url += "?redirect_url=#{referer}" #we have to send back redirection url
+			# 		end
+
+			# 		if !request.headers['HTTP_ACCEPT'].include?("application/json") #checkout for ajax requests
+			# 			redirect_to redirect_url
+			# 		else
+			# 			render json:{redirect_url:redirect_url}, status: 302
+			# 		end
+			# 	}
+			# end
 		else
 			if !parsed_body['updated_token'].blank? #if jwt updated
 			    cookies['JWT'] = response.set_cookie "JWT", { :value => parsed_body['updated_token'], :domain => get_domain_name_from_opts}
@@ -94,7 +105,7 @@ module JWTHandler
   	private
   	def get_ref_link_from_opts
   		opts = get_arguable_opts
-  		if !opts[:ref_link].to_s.blank?
+  		unless opts[:ref_link].to_s.blank?
   			return opts[:ref_link]
   		end
 
@@ -113,7 +124,7 @@ module JWTHandler
   	def get_validation_path_from_opts
   		opts = get_arguable_opts
 
-  		if(!opts[:validation_path].to_s.blank?)
+  		unless opts[:validation_path].to_s.blank?
   			return opts[:validation_path]
   		end
 
@@ -124,7 +135,7 @@ module JWTHandler
   	def get_domain_name_from_opts
   		opts = get_arguable_opts
 
-  		if(!opts[:domain_name].to_s.blank?)
+  		unless opts[:domain_name].to_s.blank?
   			return opts[:domain_name]
   		end
 
