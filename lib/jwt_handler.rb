@@ -1,6 +1,6 @@
 require 'active_support/concern'
 require 'jwt'
-require 'HTTParty'
+require 'httparty'
 
 module JWTHandler
   extend ActiveSupport::Concern
