@@ -1,11 +1,12 @@
 require 'active_support/concern'
 require 'jwt'
+require 'HTTParty'
 
 module JWTHandler
   extend ActiveSupport::Concern
   included do
 
-  	include HTTParty
+  	# include HTTParty
     before_action :validate_token
 
     module ClassMethods
