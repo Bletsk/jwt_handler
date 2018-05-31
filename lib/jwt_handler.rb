@@ -39,7 +39,9 @@ module JWTHandler
 
 			respond_to do |format|
 				format.json {
-					render json: "Not authorized", :status => 401
+					render json: {
+			        	error: "Error: Not authorized \\ Wrong token"
+					}, :status => 401
 				}
 				format.html {
 					redirect_url = parsed_body['sign_in_url']
