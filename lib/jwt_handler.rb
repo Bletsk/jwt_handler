@@ -6,7 +6,6 @@ module JWTHandler
   extend ActiveSupport::Concern
   included do
 
-  	# include HTTParty
     before_action :validate_token
 
     module ClassMethods
@@ -22,7 +21,6 @@ module JWTHandler
   		return if ['api/v1/auth'].include?(params[:controller])
 
 		jwt_validation_path = get_validation_path_from_opts
-		# p jwt_validation_path
 		referer = get_ref_link_from_opts
 
 		headers = { 
@@ -36,6 +34,12 @@ module JWTHandler
 		#checkout for token validationn response if it return error then redirect to the auth page
 		if !parsed_body['error'].blank?
 			p "parsed_body error"
+
+			respond_to do |format|
+				format.json {
+					render json: "Access denied", :status => 403
+				}
+			end
 
 			redirect_url = parsed_body['sign_in_url']
 			if !referer.to_s.blank?
