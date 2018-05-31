@@ -2,6 +2,8 @@ require 'active_support/concern'
 require 'jwt'
 require 'httparty'
 
+include ActionController::MimeResponds
+
 module JWTHandler
   extend ActiveSupport::Concern
   included do
