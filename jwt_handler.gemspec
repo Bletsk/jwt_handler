@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "rails", "~> 5.1.6"
   s.add_dependency "jwt"
+  s.add_dependency "httparty"
 
   # s.add_development_dependency "sqlite3"
 end
