@@ -41,17 +41,18 @@ module JWTHandler
 				format.json {
 					render json: "Access denied", :status => 403
 				}
-			end
+				format.html {
+					redirect_url = parsed_body['sign_in_url']
+					if !referer.to_s.blank?
+						redirect_url += "?redirect_url=#{referer}" #we have to send back redirection url
+					end
 
-			redirect_url = parsed_body['sign_in_url']
-			if !referer.to_s.blank?
-				redirect_url += "?redirect_url=#{referer}" #we have to send back redirection url
-			end
-
-			if !request.headers['HTTP_ACCEPT'].include?("application/json") #checkout for ajax requests
-				redirect_to redirect_url
-			else
-				render json:{redirect_url:redirect_url}, status: 302
+					if !request.headers['HTTP_ACCEPT'].include?("application/json") #checkout for ajax requests
+						redirect_to redirect_url
+					else
+						render json:{redirect_url:redirect_url}, status: 302
+					end
+				}
 			end
 		else
 			if !parsed_body['updated_token'].blank? #if jwt updated
