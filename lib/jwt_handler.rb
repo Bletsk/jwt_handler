@@ -14,7 +14,6 @@ module JWTHandler
     module ClassMethods
 	    attr_reader :arguable_opts
 
-	    private
 	    def jwt_parameters(opts={})
 	    	@arguable_opts = opts
 	    end
