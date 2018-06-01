@@ -2,24 +2,26 @@ require 'active_support/concern'
 require 'jwt'
 require 'httparty'
 
+include ActionController::Helpers
+include ActionController::MimeResponds
+include ActionController::Cookies
+
 module JWTHandler
   extend ActiveSupport::Concern
   included do
-
-  	include ActionController::Helpers
-  	include ActionController::MimeResponds
-	include ActionController::Cookies
     before_action :validate_token
 
     module ClassMethods
 	    attr_reader :arguable_opts
 
+	    private
 	    def jwt_parameters(opts={})
 	    	@arguable_opts = opts
 	    end
 	end
 
     def validate_token
+    	p ENV['program_service_url']
   		return if ['api/v1/auth'].include?(params[:controller])
 
 		jwt_validation_path = get_validation_path_from_opts
