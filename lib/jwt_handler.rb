@@ -6,8 +6,7 @@ module JWTHandler
   extend ActiveSupport::Concern
   included do
 
-  	include AbstractController::Helpers
-	include Rails.application.routes.url_helpers
+  	include ActionController::Helpers
   	include ActionController::MimeResponds
 	include ActionController::Cookies
     before_action :validate_token
