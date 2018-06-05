@@ -66,8 +66,8 @@ module JWTHandler
 	end
 
 	def current_user
-  		return extract_jwt_payload['user']
-		end
+  		return extract_jwt_payload['user'].to_h
+	end
 
 	#Получаем данные из переданных аргументов
 	# private
