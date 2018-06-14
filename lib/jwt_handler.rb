@@ -12,12 +12,31 @@ module JWTHandler
     before_action :validate_token
 
     def validate_token
+    	# Скипаем валидацию, если в контроллере аутентификации
   		return if ['api/v1/auth'].include?(params[:controller])
+
+  		# Скипаем валидацию, если запрос в режиме дебага
+  		if check_for_debug
+  			p "JWT: Page rendered in debug-mode"
+  			return
+  		end
+
+  		# Скипаем валидацию, если предоставлен секрет
+  		if request.headers['X-Authorization']
+  			headers = {
+  				"X-Authorization" => get_secret()
+  			}
+  			path = get_auth_service_path + '/api/v1/session/get_user'
+
+  			@user = HTTParty.get(path, :headers => headers)
+  			return
+  		end
+
 
 		jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
 		referer = get_ref_link
 
-		headers = { 
+		headers = {
 			"Authorization" => get_jwt()
 		}
 
@@ -50,13 +69,33 @@ module JWTHandler
 		return cookies["JWT"] || request.headers['Authorization'] || ""
 	end
 
+	def get_secret
+		return request.headers['X-Authorization'] || ""
+	end
+
 	def extract_jwt_payload
 		token = get_jwt.split('bearer ')[1] #"JWT <token>" split on
-		return JWT.decode(token, nil, false)[0]
+		if token
+			return JWT.decode(token, nil, false)[0]
+		end
+
+		return ""
 	end
 
 	def current_user
-  		return extract_jwt_payload['user'].to_h
+		if !extract_jwt_payload.empty?
+			return extract_jwt_payload['user'].to_h	
+		elsif @user
+			return @user
+		end
+
+		return {
+			id: "70577a3f-32a4-4c63-affa-13331998ba7e",
+			fname: "User",
+			lname: "test",
+			roles: ["auto", "student", "trainer", "methodologist", "manager", "admin"], # student, trainer, methodologist, manager, admin
+			organization_id: "fdsf"
+		}
 	end
 
   	private
@@ -70,6 +109,15 @@ module JWTHandler
 
   	def get_domain_name
   		ENV['jwt_domain_name'] || 'localhost'
+  	end
+
+  	def check_for_debug
+  		uri = URI.parse(request.original_url)
+  		if uri.query && CGI.parse(uri.query)['jwt-debug'][0] == 'true'
+  			return true
+  		else
+  			return false
+  		end
   	end
 
   end
