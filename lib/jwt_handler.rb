@@ -12,7 +12,10 @@ module JWTHandler
     before_action :validate_token
 
     def validate_token
-    	# Скипаем валидацию, если в контроллере аутентификации
+    	# Скипаем валидацию в development-окружении
+    	return if Rails.env.development?
+		
+		# Скипаем валидацию, если в контроллере аутентификации
   		return if ['api/v1/auth'].include?(params[:controller])
 
   		# Скипаем валидацию, если запрос в режиме дебага
@@ -82,13 +85,18 @@ module JWTHandler
 		return ""
 	end
 
+	# Запрашиваем данные текущего пользователя
 	def current_user
-		if !extract_jwt_payload.empty?
-			return extract_jwt_payload['user'].to_h	
-		elsif @user
-			return @user
+		unless Rails.env.development?
+			payload = extract_jwt_payload
+			if !payload.empty?
+				return payload['user'].to_h	
+			elsif @user
+				return @user
+			end
 		end
 
+		# Параметры тестового пользователя
 		return {
 			id: "70577a3f-32a4-4c63-affa-13331998ba7e",
 			fname: "User",
