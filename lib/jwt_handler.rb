@@ -73,7 +73,7 @@ module JWTHandler
 	end
 
 	def get_secret
-		return request.headers['X-Authorization'] || ""
+		return request.headers['X-Authorization'] || request.headers['x-authorization'] || ""
 	end
 
 	def extract_jwt_payload
@@ -87,16 +87,15 @@ module JWTHandler
 
 	# Запрашиваем данные текущего пользователя
 	def current_user
-		unless Rails.env.development?
+		if @user
+			return @user
+		else
 			payload = extract_jwt_payload
 			if !payload.empty?
 				return payload['user'].to_h	
-			elsif @user
-				return @user
 			end
 		end
-
-		# Параметры тестового пользователя
+		
 		return {
 			"id" => "70577a3f-32a4-4c63-affa-13331998ba7e",
 			"fname" => "User",
