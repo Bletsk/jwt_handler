@@ -12,9 +12,6 @@ module JWTHandler
     before_action :validate_token
 
     def validate_token
-    	# Скипаем валидацию в development-окружении
-    	return if Rails.env.development?
-		
 		# Скипаем валидацию, если в контроллере аутентификации
   		return if ['api/v1/auth'].include?(params[:controller])
 
@@ -34,6 +31,9 @@ module JWTHandler
   			@user = HTTParty.get(path, :headers => headers)
   			return
   		end
+
+  		# Скипаем валидацию в development-окружении
+    	return if Rails.env.development?
 
 
 		jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
