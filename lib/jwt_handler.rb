@@ -12,8 +12,9 @@ module JWTHandler
     before_action :validate_token
 
     def validate_token
+		
 		# Скипаем валидацию, если в контроллере аутентификации
-  		return if ['api/v1/auth'].include?(params[:controller])
+  		return if ['api/v1/auth'].include?(params[:controller]) || ['mail_auth'].include?(params[:controller])
 
   		# Скипаем валидацию, если запрос в режиме дебага
   		if check_for_debug
