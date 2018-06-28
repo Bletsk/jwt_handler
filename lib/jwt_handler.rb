@@ -31,7 +31,7 @@ module JWTHandler
 
   			response = HTTParty.get(path, :headers => headers)
   			if !response.success? || response.bad_gateway?
-  				return @user = empty_user
+  				return @user = nil
   			else
   				return @user = response.body
   			end
@@ -115,15 +115,15 @@ module JWTHandler
   		ENV['jwt_referer_link'] || Rails.root
   	end
 
-  	def empty_user
-  		return {
-			"id" => "0",
-			"fname" => "",
-			"lname" => "",
-			"roles" => [],
-			"organization_id" => "0"
-		}
-  	end
+  # 	def empty_user
+  # 		return {
+		# 	"id" => "0",
+		# 	"fname" => "",
+		# 	"lname" => "",
+		# 	"roles" => [],
+		# 	"organization_id" => "0"
+		# }
+  # 	end
 
   	def get_auth_service_path
   		ENV['jwt_auth_service_path'] || 'http://localhost:3001'
