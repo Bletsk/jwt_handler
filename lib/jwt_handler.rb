@@ -29,8 +29,12 @@ module JWTHandler
   			}
   			path = get_auth_service_path + '/api/v1/session/get_user'
 
-  			@user = HTTParty.get(path, :headers => headers)
-  			return
+  			response = HTTParty.get(path, :headers => headers)
+  			if !response.success? || response.bad_gateway?
+  				return @user = empty_user
+  			else
+  				return @user = response.body
+  			end
   		end
 
   		# Скипаем валидацию в development-окружении
@@ -109,6 +113,16 @@ module JWTHandler
   	private
   	def get_ref_link
   		ENV['jwt_referer_link'] || Rails.root
+  	end
+
+  	def empty_user
+  		return {
+			"id" => "0",
+			"fname" => "",
+			"lname" => "",
+			"roles" => [],
+			"organization_id" => "0"
+		}
   	end
 
   	def get_auth_service_path
