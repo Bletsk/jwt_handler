@@ -17,29 +17,26 @@ module JWTHandler
   		return if ['api/v1/auth'].include?(params[:controller]) || ['mail_auth'].include?(params[:controller])
 
   		# Скипаем валидацию, если запрос в режиме дебага
-  		if check_for_debug
-  			p "JWT: Page rendered in debug-mode"
-  			return
-  		end
+  		return p "JWT: Page rendered in debug-mode" if check_for_debug
 
   		# Скипаем валидацию, если предоставлен секрет
   		if request.headers['X-Authorization']
   			headers = {
   				"X-Authorization" => get_secret()
   			}
-  			path = get_auth_service_path + '/api/v1/session/get_user'
+  			path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
 
   			response = HTTParty.get(path, :headers => headers)
-  			if !response.success? || response.bad_gateway?
-  				return @user = nil
-  			else
-  				return @user = response.body
-  			end
+
+  			# p response
+
+  			return nil if !response.success? || response.bad_gateway?
+  				
+  			return @user = response.body
   		end
 
   		# Скипаем валидацию в development-окружении
     	return if Rails.env.development? || Rails.env.test?
-
 
 		jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
 		referer = get_ref_link
@@ -56,18 +53,16 @@ module JWTHandler
 		if !parsed_body['error'].blank?
 
 			redirect_url = parsed_body['sign_in_url']
-			if !referer.to_s.blank?
-				redirect_url += "?redirect_url=#{referer}" #we have to send back redirection url
-			end
+			redirect_url += "?redirect_url=#{referer}" unless referer.to_s.blank?
 
-			if !request.headers['HTTP_ACCEPT'].include?("application/json") #checkout for ajax requests
-				redirect_to redirect_url
-			else
-				render json:{redirect_url:redirect_url}, status: 302
-			end
+			#checkout for ajax requests
+			return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
+				
+			render json:{redirect_url:redirect_url}, status: 302
 		else
-			if !parsed_body['updated_token'].blank? #if jwt updated
-				cookies['JWT'] = response.cookies['JWT'] = { :value => parsed_body['updated_token'], :domain => get_domain_name, :path => '/' }
+			#if jwt updated
+			unless parsed_body['updated_token'].blank?
+				cookies['JWT'] = { :value => parsed_body['updated_token'], :domain => get_domain_name, :path => '/' }
 		    end
 		end
 	end
@@ -83,31 +78,29 @@ module JWTHandler
 
 	def extract_jwt_payload
 		token = get_jwt.split('bearer ')[1] #"JWT <token>" split on
-		if token
-			return JWT.decode(token, nil, false)[0]
-		end
+		return JWT.decode(token, nil, false)[0] if token
 
-		return ""
+		return nil
 	end
 
 	# Запрашиваем данные текущего пользователя
 	def current_user
-		if @user
-			return @user
-		else
-			payload = extract_jwt_payload
-			if !payload.empty?
-				return payload['user'].to_h	
-			end
-		end
+		return @user if @user
 		
-		return {
-			"id" => "70577a3f-32a4-4c63-affa-13331998ba7e",
-			"fname" => "User",
-			"lname" => "test",
-			"roles" => ["auto", "student", "trainer", "methodologist", "manager", "admin"], # student, trainer, methodologist, manager, admin
-			"organization_id" => "fdsf"
-		}
+		payload = extract_jwt_payload
+		return payload['user'].to_h	unless payload.nil?
+		
+		if Rails.env.development? || Rails.env.test?
+			return {
+				"id" => "70577a3f-32a4-4c63-affa-13331998ba7e",
+				"fname" => "User",
+				"lname" => "test",
+				"roles" => ["auto", "student", "trainer", "methodologist", "manager", "admin"], # student, trainer, methodologist, manager, admin
+				"organization_id" => "fdsf"
+			}
+		end
+
+		return {}
 	end
 
   	private
@@ -115,18 +108,12 @@ module JWTHandler
   		ENV['jwt_referer_link'] || Rails.root
   	end
 
-  # 	def empty_user
-  # 		return {
-		# 	"id" => "0",
-		# 	"fname" => "",
-		# 	"lname" => "",
-		# 	"roles" => [],
-		# 	"organization_id" => "0"
-		# }
-  # 	end
-
   	def get_auth_service_path
   		ENV['jwt_auth_service_path'] || 'http://localhost:3001'
+  	end
+
+  	def get_user_management_path
+  		ENV['jwt_user_management_path'] || ENV['user_management_url'] || 'http://localhost:3023'
   	end
 
   	def get_domain_name
@@ -135,11 +122,7 @@ module JWTHandler
 
   	def check_for_debug
   		uri = URI.parse(request.original_url)
-  		if uri.query && CGI.parse(uri.query)['jwt-debug'][0] == 'true'
-  			return true
-  		else
-  			return false
-  		end
+  		return uri.query && CGI.parse(uri.query)['jwt-debug'][0] == 'true'
   	end
 
   end
