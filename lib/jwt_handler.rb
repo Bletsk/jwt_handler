@@ -69,7 +69,7 @@ module JWTHandler
 
 	def get_jwt
 		#Remember that JWT structure is "JWT <token>"
-		return cookies["JWT"] || request.headers['Authorization'] || ""
+		return request.cookies["JWT"] || request.headers['Authorization'] || ""
 	end
 
 	def get_secret
