@@ -69,7 +69,11 @@ module JWTHandler
 
 	def get_jwt
 		#Remember that JWT structure is "JWT <token>"
-		return request.cookies["JWT"] || request.headers['Authorization'] || ""
+		begin
+			return request.cookies["JWT"] || request.headers['Authorization'] || ""
+		rescue
+			return ""
+		end
 	end
 
 	def get_secret
@@ -78,9 +82,9 @@ module JWTHandler
 
 	def extract_jwt_payload
 		token = get_jwt.split('bearer ')[1] #"JWT <token>" split on
-		return JWT.decode(token, nil, false)[0] if token
+		return nil unless token
 
-		return nil
+		return JWT.decode(token, nil, false)[0]
 	end
 
 	# Запрашиваем данные текущего пользователя
