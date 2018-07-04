@@ -94,7 +94,7 @@ module JWTHandler
   end
 
   def extract_jwt_payload
-    token = get_jwt.split('bearer ')[1] #"JWT <token>" split on
+    token = get_jwt #"JWT <token>" split on
     return nil unless token
 
     return JWT.decode(token, nil, false)[0]
