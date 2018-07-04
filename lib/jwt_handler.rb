@@ -22,7 +22,7 @@ module JWTHandler
       # Скипаем валидацию, если предоставлен секрет
       if request.headers['X-Authorization']
         headers = {
-          "X-Authorization" => get_secret()
+          "X-Authorization" => get_secret().gsub!('+', ' ')
         }
         path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
 
@@ -76,7 +76,7 @@ module JWTHandler
       #if jwt updated
       unless parsed_body['updated_token'].blank?
         cookies['JWT'] = { :value => parsed_body['updated_token'], :domain => get_domain_name, :path => '/' }
-        end
+      end
     end
   end
 
