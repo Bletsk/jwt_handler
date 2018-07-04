@@ -30,7 +30,7 @@ module JWTHandler
           response = HTTParty.get(path, :headers => headers, :timeout => 3)
           case response.code
             when 200
-              return @user = response.body
+              return @user = JSON.parse(response.body)
             when 404
               p "JWT-handler: Page not found"
           end
@@ -102,7 +102,7 @@ module JWTHandler
 
   # Запрашиваем данные текущего пользователя
   def current_user
-    return JSON.parse(@user) if @user
+    return @user if @user
     
     payload = extract_jwt_payload
     return payload['user'].to_h unless payload.nil?
