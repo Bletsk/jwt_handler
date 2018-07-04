@@ -22,7 +22,7 @@ module JWTHandler
       # Скипаем валидацию, если предоставлен секрет
       if request.headers['X-Authorization']
         headers = {
-          "X-Authorization" => get_secret().gsub!('+', ' ')
+          "X-Authorization" => get_secret()
         }
         path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
 
@@ -102,7 +102,29 @@ module JWTHandler
 
   # Запрашиваем данные текущего пользователя
   def current_user
-    return @user if @user
+    if request.headers['X-Authorization']
+      headers = {
+        "X-Authorization" => get_secret()
+      }
+      path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
+
+      begin
+        response = HTTParty.get(path, :headers => headers, :timeout => 3)
+        case response.code
+          when 200
+            return JSON.parse(response.body)
+          when 404
+            p "JWT-handler: Page not found"
+        end
+      rescue HTTParty::Error => e
+        p "JWT-handler: HTTParty error"
+        p e.inspect
+      rescue StandardError => e
+        "JWT-handler: StandardError"
+        p e.inspect
+      end
+    end
+    # return @user if @user
     
     payload = extract_jwt_payload
     return payload['user'].to_h unless payload.nil?
