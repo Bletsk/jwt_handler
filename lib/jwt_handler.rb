@@ -30,8 +30,8 @@ module JWTHandler
 
           path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
           response = HTTParty.get(path, :headers => headers, :timeout => 20)
-          # p headers
-          # p response
+          p headers
+          p response
           if response.code.to_s.include?("20")
               return @user = JSON.parse(response.body)
           else
