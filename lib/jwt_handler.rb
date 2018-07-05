@@ -11,69 +11,71 @@ module JWTHandler
   included do
     before_action :validate_token
 
-    def validate_token
+  def validate_token
     
     # Скипаем валидацию, если в контроллере аутентификации
-      return if ['api/v1/auth'].include?(params[:controller]) || ['mail_auth'].include?(params[:controller])
+    return if ['api/v1/auth'].include?(params[:controller]) || ['mail_auth'].include?(params[:controller])
 
-      # Скипаем валидацию, если запрос в режиме дебага
-      return p "JWT: Page rendered in debug-mode" if check_for_debug
+    # Скипаем валидацию, если запрос в режиме дебага
+    return p "JWT: Page rendered in debug-mode" if check_for_debug
 
-      # Скипаем валидацию, если предоставлен секрет
-      if request.headers['X-Authorization']
-        headers = {
-          "X-Authorization" => get_secret()
-        }
-        path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
+    # Скипаем валидацию, если предоставлен секрет
+    if request.headers['X-Authorization']
+      headers = {
+        "X-Authorization" => get_secret()
+      }
+      path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
 
-        @t = Thread.new do
-          begin
-            response = HTTParty.get(path, :headers => headers, :timeout => 20)
-            case response.code
-              when 200
-                return @user = JSON.parse(response.body)
-              when 404
-                p "JWT-handler: Page not found"
-            end
-          rescue HTTParty::Error => e
-            p "JWT-handler: HTTParty error"
-            p e.inspect
-          rescue StandardError => e
-            "JWT-handler: StandardError"
-            p e.inspect
+      @t = Thread.new do
+        begin
+          response = HTTParty.get(path, :headers => headers, :timeout => 20)
+          case response.code
+            when 200
+              return @user = JSON.parse(response.body)
+            when 404
+              p "JWT-handler: Page not found"
           end
+        rescue HTTParty::Error => e
+          p "JWT-handler: HTTParty error"
+          p e.inspect
+        rescue StandardError => e
+          "JWT-handler: StandardError"
+          p e.inspect
         end
-        
-      end
 
+        return nil
+      end
+        
+    else
       # Скипаем валидацию в development-окружении
       return if Rails.env.development? || Rails.env.test?
 
-    jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
-    referer = get_ref_link
+      jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
+      referer = get_ref_link
 
-    headers = {
-      "Authorization" => get_jwt()
-    }
+      headers = {
+        "Authorization" => get_jwt()
+      }
 
-    validation_response = HTTParty.post(jwt_validation_path, :headers => headers, body:{redirect_url:referer}, :timeout => 20)
+      validation_response = HTTParty.post(jwt_validation_path, :headers => headers, body:{redirect_url:referer}, :timeout => 20)
 
-    parsed_body = JSON.parse(validation_response.body)
+      parsed_body = JSON.parse(validation_response.body)
 
-    #checkout for token validationn response if it return error then redirect to the auth page
-    if !parsed_body['error'].blank?
+      #checkout for token validationn response if it return error then redirect to the auth page
+      if !parsed_body['error'].blank?
 
-      redirect_url = parsed_body['sign_in_url']
-      redirect_url += "?redirect_url=#{referer}" unless referer.to_s.blank?
+        redirect_url = parsed_body['sign_in_url']
+        redirect_url += "?redirect_url=#{referer}" unless referer.to_s.blank?
 
-      #checkout for ajax requests
-      return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
-        
-      render json:{redirect_url:redirect_url}, status: 302
-    else
-      #if jwt updated
-      unless parsed_body['updated_token'].blank?
-        cookies['JWT'] = { :value => parsed_body['updated_token'], :domain => get_domain_name, :path => '/' }
+        #checkout for ajax requests
+        return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
+          
+        render json:{redirect_url:redirect_url}, status: 302
+      else
+        #if jwt updated
+        unless parsed_body['updated_token'].blank?
+          cookies['JWT'] = { :value => parsed_body['updated_token'], :domain => get_domain_name, :path => '/' }
+        end
       end
     end
   end
