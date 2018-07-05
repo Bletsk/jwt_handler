@@ -28,7 +28,7 @@ module JWTHandler
 
         @t = Thread.new do
           begin
-            response = HTTParty.get(path, :headers => headers, :timeout => 3)
+            response = HTTParty.get(path, :headers => headers, :timeout => 20)
             case response.code
               when 200
                 return @user = JSON.parse(response.body)
@@ -56,7 +56,7 @@ module JWTHandler
       "Authorization" => get_jwt()
     }
 
-    validation_response = HTTParty.post(jwt_validation_path, :headers => headers, body:{redirect_url:referer})
+    validation_response = HTTParty.post(jwt_validation_path, :headers => headers, body:{redirect_url:referer}, :timeout => 20)
 
     parsed_body = JSON.parse(validation_response.body)
 
