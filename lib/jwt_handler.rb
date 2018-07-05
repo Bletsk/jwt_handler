@@ -26,26 +26,24 @@ module JWTHandler
         }
         path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
 
-        begin
-          response = HTTParty.get(path, :headers => headers, :timeout => 3)
-          case response.code
-            when 200
-              return @user = JSON.parse(response.body)
-            when 404
-              p "JWT-handler: Page not found"
+        @t = Thread.new do
+          begin
+            response = HTTParty.get(path, :headers => headers, :timeout => 3)
+            case response.code
+              when 200
+                return @user = JSON.parse(response.body)
+              when 404
+                p "JWT-handler: Page not found"
+            end
+          rescue HTTParty::Error => e
+            p "JWT-handler: HTTParty error"
+            p e.inspect
+          rescue StandardError => e
+            "JWT-handler: StandardError"
+            p e.inspect
           end
-        rescue HTTParty::Error => e
-          p "JWT-handler: HTTParty error"
-          p e.inspect
-        rescue StandardError => e
-          "JWT-handler: StandardError"
-          p e.inspect
         end
-
-        # p "Response"
-        # p response.success?
-
-        # return @user = response.body if response && !response.bad_gateway? && response.success?
+        
       end
 
       # Скипаем валидацию в development-окружении
@@ -83,9 +81,9 @@ module JWTHandler
   def get_jwt
     #Remember that JWT structure is "JWT <token>"
     begin
-      return request.headers['Authorization'] || request.cookies["JWT"] ||  ""
+      return request.cookies["JWT"] || request.headers['Authorization'] ||  ""
     rescue
-      return ""
+      return nil
     end
   end
 
@@ -102,41 +100,24 @@ module JWTHandler
 
   # Запрашиваем данные текущего пользователя
   def current_user
-    if request.headers['X-Authorization']
-      headers = {
-        "X-Authorization" => get_secret()
-      }
-      path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
-
-      begin
-        response = HTTParty.get(path, :headers => headers, :timeout => 3)
-        case response.code
-          when 200
-            return JSON.parse(response.body)
-          when 404
-            p "JWT-handler: Page not found"
-        end
-      rescue HTTParty::Error => e
-        p "JWT-handler: HTTParty error"
-        p e.inspect
-      rescue StandardError => e
-        "JWT-handler: StandardError"
-        p e.inspect
+    if request.headers['X-Authorization'] && @t
+      @t.join
+      return @user if @user
+    else
+    
+    
+      payload = extract_jwt_payload
+      return payload['user'].to_h unless payload.nil?
+      
+      if Rails.env.development? || Rails.env.test? || check_for_debug
+        return {
+          "id" => "70577a3f-32a4-4c63-affa-13331998ba7e",
+          "fname" => "User",
+          "lname" => "test",
+          "roles" => ["auto", "student", "trainer", "methodologist", "manager", "admin"], # student, trainer, methodologist, manager, admin
+          "organization_id" => "fdsf"
+        }
       end
-    end
-    # return @user if @user
-    
-    payload = extract_jwt_payload
-    return payload['user'].to_h unless payload.nil?
-    
-    if Rails.env.development? || Rails.env.test? || check_for_debug
-      return {
-        "id" => "70577a3f-32a4-4c63-affa-13331998ba7e",
-        "fname" => "User",
-        "lname" => "test",
-        "roles" => ["auto", "student", "trainer", "methodologist", "manager", "admin"], # student, trainer, methodologist, manager, admin
-        "organization_id" => "fdsf"
-      }
     end
 
     return {}
