@@ -43,7 +43,9 @@ module JWTHandler
           p e.inspect
         end
 
-        return nil
+        return render json: {
+          error: "X-Authorization error"
+        }, :status => 401
       end
         
     else
