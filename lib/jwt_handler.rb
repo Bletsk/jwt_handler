@@ -99,7 +99,7 @@ module JWTHandler
   def extract_jwt_payload
     token = get_jwt #"JWT <token>" split on
     # p token
-    return nil unless token
+    return nil unless token || token.to_s.empty?
 
     return JWT.decode(token, nil, false)[0]
   end
