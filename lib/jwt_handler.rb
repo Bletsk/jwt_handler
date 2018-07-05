@@ -51,7 +51,7 @@ module JWTHandler
       end
         
       # Скипаем валидацию в development-окружении
-      # return if Rails.env.development? || Rails.env.test?
+      return if Rails.env.development? || Rails.env.test?
 
       jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
       referer = get_ref_link
