@@ -29,10 +29,9 @@ module JWTHandler
       @t = Thread.new do
         begin
           response = HTTParty.get(path, :headers => headers, :timeout => 20)
-          case response.code
-            when 200
+          if response.code.to_s.include?("20")
               return @user = JSON.parse(response.body)
-            when 404
+          else
               p "JWT-handler: Page not found"
           end
         rescue HTTParty::Error => e
