@@ -19,16 +19,19 @@ module JWTHandler
     # Скипаем валидацию, если запрос в режиме дебага
     return p "JWT: Page rendered in debug-mode" if check_for_debug
 
+    # @t = Thread.new do
     # Скипаем валидацию, если предоставлен секрет
     if request.headers['X-Authorization']
-      headers = {
-        "X-Authorization" => get_secret()
-      }
-      path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
-
-      @t = Thread.new do
+      
         begin
+          headers = {
+            "X-Authorization" => get_secret()
+          }
+
+          path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
           response = HTTParty.get(path, :headers => headers, :timeout => 20)
+          # p headers
+          # p response
           if response.code.to_s.include?("20")
               return @user = JSON.parse(response.body)
           else
@@ -42,12 +45,11 @@ module JWTHandler
           p e.inspect
         end
 
-        return render json: {
-          error: "X-Authorization error"
-        }, :status => 401
+        # return render json: {
+        #   error: "X-Authorization error"
+        # }, :status => 401
       end
         
-    else
       # Скипаем валидацию в development-окружении
       return if Rails.env.development? || Rails.env.test?
 
@@ -78,13 +80,13 @@ module JWTHandler
           cookies['JWT'] = { :value => parsed_body['updated_token'], :domain => get_domain_name, :path => '/' }
         end
       end
-    end
+    # end
   end
 
   def get_jwt
     #Remember that JWT structure is "JWT <token>"
     begin
-      return request.cookies["JWT"] || request.headers['Authorization'] ||  ""
+      return request.headers['Authorization'] || request.cookies["JWT"] || ""
     rescue
       return nil
     end
@@ -96,6 +98,7 @@ module JWTHandler
 
   def extract_jwt_payload
     token = get_jwt #"JWT <token>" split on
+    # p token
     return nil unless token
 
     return JWT.decode(token, nil, false)[0]
@@ -103,8 +106,8 @@ module JWTHandler
 
   # Запрашиваем данные текущего пользователя
   def current_user
-    if request.headers['X-Authorization'] && @t
-      @t.join
+    if request.headers['X-Authorization']
+      # @t.join
       return @user if @user
     else
     
