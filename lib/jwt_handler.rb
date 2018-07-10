@@ -12,6 +12,11 @@ module JWTHandler
     before_action :init
 
   def init
+    p check_for_excluded_controllers
+    p check_for_debug
+    p check_for_x_authorization
+    p check_for_testing_environments
+    
     return if check_for_excluded_controllers || check_for_debug || check_for_x_authorization || check_for_testing_environments
 
     check_for_auth_token
