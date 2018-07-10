@@ -122,6 +122,7 @@ module JWTHandler
 
   # Проверяем, не открыта ли текущая страница в режиме дебага гема
   def check_for_debug
+    p request.original_url
     uri = URI.parse(request.original_url)
     return !uri.query.blank? && CGI.parse(uri.query)['jwt-debug'][0] == 'true'
   end
@@ -153,6 +154,7 @@ module JWTHandler
 
   # Проверяем на наличие и валидность токена авторизации в параметрах
   def check_for_auth_token
+    p request.original_url
     uri = URI.parse(request.original_url)
     p "uri"
     p uri
