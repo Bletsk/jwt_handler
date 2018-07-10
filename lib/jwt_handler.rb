@@ -18,10 +18,6 @@ module JWTHandler
   end
 
   def validate_jwt
-    return if Rails.env.development? || Rails.env.test?
-
-    # logger.info "jwt: Провожу классическую валидацию"
-
     jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
     referer = get_ref_link
 
@@ -35,9 +31,7 @@ module JWTHandler
 
     #checkout for token validationn response if it return error then redirect to the auth page
     if !parsed_body['error'].blank?
-
-      # logger.info "Валидация не успешна"
-
+      
       redirect_url = parsed_body['sign_in_url']
       redirect_url += "?redirect_url=#{referer}" unless referer.to_s.blank?
 
@@ -124,12 +118,12 @@ module JWTHandler
   # Проверяем, не открыта ли текущая страница в режиме дебага гема
   def check_for_debug
     uri = URI.parse(request.original_url)
-    return uri.query && CGI.parse(uri.query)['jwt-debug'][0] == 'true'
+    return !uri.query.blank? && CGI.parse(uri.query)['jwt-debug'][0] == 'true'
   end
 
   # Проверяем, находимся ли мы в тестовом окружении
   def check_for_testing_environments
-    return (Rails.env.development? || Rails.env.test?) && !(ENV['jwt_validate_on_test'] == "true")
+    return (Rails.env.development? || Rails.env.test?) && !(ENV['jwt_ignore_dev'] == "true")
   end
 
   # Проверяем на наличие и валидность секрета в параметрах
@@ -146,10 +140,10 @@ module JWTHandler
       if response.code.to_s.include?("20")
           @user = JSON.parse(response.body)
           return true
-      else
-          return false
       end
     end
+
+    return false
   end
 
   # Проверяем на наличие и валидность токена авторизации в параметрах
@@ -166,5 +160,5 @@ module JWTHandler
       validate_jwt
     end
   end
-
+end
 end
