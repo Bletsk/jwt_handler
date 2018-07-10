@@ -16,7 +16,7 @@ module JWTHandler
     p check_for_debug
     p check_for_x_authorization
     p check_for_testing_environments
-    
+
     return if check_for_excluded_controllers || check_for_debug || check_for_x_authorization || check_for_testing_environments
 
     check_for_auth_token
@@ -155,13 +155,17 @@ module JWTHandler
   def check_for_auth_token
     uri = URI.parse(request.original_url)
     token = CGI.parse(uri.query)['token'][0] if uri.query
+    p "token"
+    p token
     if token
+      p "token present"
       redirect_url = get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.url.split('?').first
 
       return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
       
       return render json:{redirect_url:redirect_url}, status: 302
     else
+      p "no token"
       validate_jwt
     end
   end
