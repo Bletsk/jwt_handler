@@ -154,6 +154,8 @@ module JWTHandler
   # Проверяем на наличие и валидность токена авторизации в параметрах
   def check_for_auth_token
     uri = URI.parse(request.original_url)
+    p "uri"
+    p uri
     token = CGI.parse(uri.query)['token'][0] if uri.query
     p "token"
     p token
