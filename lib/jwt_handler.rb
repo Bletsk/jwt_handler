@@ -22,7 +22,7 @@ module JWTHandler
     # @t = Thread.new do
     # Скипаем валидацию, если предоставлен секрет
     if request.headers['X-Authorization']
-      logger.info "Обнаружен секрет. Проверяю..."
+      # logger.info "Обнаружен секрет. Проверяю..."
       
         # begin
       headers = {
@@ -36,12 +36,23 @@ module JWTHandler
       if response.code.to_s.include?("20")
           return @user = JSON.parse(response.body)
       else
-          p "jwt: Секрет неверен"
+          # p "jwt: Секрет неверен"
           validate_jwt
       end
     else
-      logger.info "jwt: Секрет не задан"
-      validate_jwt
+      # logger.info "jwt: Секрет не задан"
+
+      uri = URI.parse(request.original_url)
+      token = CGI.parse(uri.query)['token'][0] if uri.query
+      if token
+        redirect_url = get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.url.split('?').first
+
+        return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
+        
+        return render json:{redirect_url:redirect_url}, status: 302
+      else
+        validate_jwt
+      end
     end
         # rescue HTTParty::Error => e
         #   p "JWT-handler: HTTParty error"
@@ -57,16 +68,14 @@ module JWTHandler
       # end
         
       # Скипаем валидацию в development-окружении
-      
 
-      
     # end
   end
 
   def validate_jwt
     return if Rails.env.development? || Rails.env.test?
 
-    logger.info "jwt: Провожу классическую валидацию"
+    # logger.info "jwt: Провожу классическую валидацию"
 
     jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
     referer = get_ref_link
@@ -82,7 +91,7 @@ module JWTHandler
     #checkout for token validationn response if it return error then redirect to the auth page
     if !parsed_body['error'].blank?
 
-      logger.info "Валидация не успешна"
+      # logger.info "Валидация не успешна"
 
       redirect_url = parsed_body['sign_in_url']
       redirect_url += "?redirect_url=#{referer}" unless referer.to_s.blank?
@@ -93,7 +102,7 @@ module JWTHandler
       render json:{redirect_url:redirect_url}, status: 302
     else
       #if jwt updated
-      logger.info "Валидация успешна"
+      # logger.info "Валидация успешна"
       unless parsed_body['updated_token'].blank?
         cookies['JWT'] = { :value => parsed_body['updated_token'], :domain => get_domain_name, :path => '/' }
       end
@@ -167,6 +176,5 @@ module JWTHandler
       uri = URI.parse(request.original_url)
       return uri.query && CGI.parse(uri.query)['jwt-debug'][0] == 'true'
     end
-
   end
 end
