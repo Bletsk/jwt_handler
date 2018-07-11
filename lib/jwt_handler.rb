@@ -73,7 +73,7 @@ module JWTHandler
   end
 
   def validate_jwt
-    return if Rails.env.development? || Rails.env.test?
+    return if (Rails.env.development? || Rails.env.test?) && !(ENV['jwt_ignore_dev'] == "true")
 
     # logger.info "jwt: Провожу классическую валидацию"
 
