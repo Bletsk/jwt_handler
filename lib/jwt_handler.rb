@@ -43,7 +43,7 @@ module JWTHandler
       # logger.info "jwt: Секрет не задан"
 
       puts "original_url"
-      p original_url
+      p request.original_url
       uri = URI.parse(request.original_url)
       token = CGI.parse(uri.query)['token'][0] if uri.query
       if token
