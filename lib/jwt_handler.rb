@@ -42,8 +42,8 @@ module JWTHandler
     else
       # logger.info "jwt: Секрет не задан"
 
-      puts "original_url"
-      p request.original_url
+      # puts "original_url"
+      # p request.original_url
       uri = URI.parse(request.original_url)
       token = CGI.parse(uri.query)['token'][0] if uri.query
       if token
@@ -96,7 +96,7 @@ module JWTHandler
       # logger.info "Валидация не успешна"
 
       redirect_url = parsed_body['sign_in_url']
-      redirect_url += "?redirect_url=#{referer}" unless referer.to_s.blank?
+      redirect_url += '?redirect_url=' + request.original_url.split('?').first
 
       #checkout for ajax requests
       return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
