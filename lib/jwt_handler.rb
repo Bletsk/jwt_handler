@@ -42,10 +42,12 @@ module JWTHandler
     else
       # logger.info "jwt: Секрет не задан"
 
+      puts "original_url"
+      p original_url
       uri = URI.parse(request.original_url)
       token = CGI.parse(uri.query)['token'][0] if uri.query
       if token
-        redirect_url = get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.url.split('?').first
+        redirect_url = get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.original_url.split('?').first
 
         return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
         
