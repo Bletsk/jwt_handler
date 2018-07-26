@@ -79,6 +79,9 @@ module JWTHandler
 
     # logger.info "jwt: Провожу классическую валидацию"
 
+    p "request_referer"
+    p request.referer
+
     jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
     referer = get_ref_link
 
