@@ -153,6 +153,7 @@ module JWTHandler
           "lname" => "test",
           "roles" => ["auto", "student", "trainer", "methodologist", "manager", "admin"], # student, trainer, methodologist, manager, admin
           "organization_id" => "fdsf",
+          "pro" => true,
           "groups" => []
         }
       end
