@@ -6,6 +6,10 @@ include ActionController::Helpers
 include ActionController::MimeResponds
 include ActionController::Cookies
 
+# http://service-name - back-end путь
+# /service-name - front-end путь
+
+
 module JWTHandler
   extend ActiveSupport::Concern
   included do
@@ -29,7 +33,7 @@ module JWTHandler
         "X-Authorization" => get_secret()
       }
 
-      path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
+      path = "http://" + get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
       response = HTTParty.get(path, :headers => headers, :timeout => 20)
       logger.info headers
       logger.info response
@@ -47,7 +51,7 @@ module JWTHandler
       uri = URI.parse(request.original_url)
       token = CGI.parse(uri.query)['token'][0] if uri.query
       if token
-        redirect_url = get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.original_url.split('?').first
+        redirect_url = "/" + get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.original_url.split('?').first
 
         return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
         
@@ -82,7 +86,7 @@ module JWTHandler
     p "request_referer"
     p request.referer
 
-    jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
+    jwt_validation_path = "http://" + get_auth_service_path + '/api/v1/session/validate'
     referer = get_ref_link
 
     headers = {
@@ -98,7 +102,7 @@ module JWTHandler
 
       # logger.info "Валидация не успешна"
 
-      redirect_url = parsed_body['sign_in_url']
+      redirect_url = parsed_body['sign_in_url'] || "/" + get_auth_service_path
       redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
 
       #checkout for ajax requests
