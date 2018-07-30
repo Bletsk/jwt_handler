@@ -102,7 +102,7 @@ module JWTHandler
 
       # logger.info "Валидация не успешна"
 
-      redirect_url = parsed_body['sign_in_url'] || "/" + get_auth_service_path
+      redirect_url = "/" + get_auth_service_path
       redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
 
       #checkout for ajax requests
