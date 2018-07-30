@@ -46,6 +46,8 @@ module JWTHandler
       # p request.original_url
       uri = URI.parse(request.original_url)
       token = CGI.parse(uri.query)['token'][0] if uri.query
+      token = request.headers['token'] unless token
+      
       if token
         redirect_url = get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.original_url.split('?').first
 
