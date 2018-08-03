@@ -81,8 +81,8 @@ module JWTHandler
 
     # logger.info "jwt: Провожу классическую валидацию"
 
-    p "request_referer"
-    p request.referer
+    # p "request_referer"
+    # p request.referer
 
     jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
     referer = get_ref_link
@@ -132,8 +132,8 @@ module JWTHandler
 
   def extract_jwt_payload
     token = get_jwt #"JWT <token>" split on
-    p "token"
-    p token
+    # p "token"
+    # p token
     return nil if !token || token.to_s.empty?
 
     return JWT.decode(token, nil, false)[0]
