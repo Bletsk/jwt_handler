@@ -14,7 +14,7 @@ module JWTHandler
   def validate_token
     
     # Скипаем валидацию, если в контроллере аутентификации
-    return if ['api/v1/auth'].include?(params[:controller]) || ['mail_auth'].include?(params[:controller]) || ['password_reset'].include?(params[:controller])
+    return if ['api/v1/auth'].include?(params[:controller]) || ['mail_auth'].include?(params[:controller]) || ['password_reset'].include?(params[:controller]) || ['developer'].include?(params[:controller])
 
     # Скипаем валидацию, если запрос в режиме дебага
     return p "JWT: Page rendered in debug-mode" if check_for_debug
