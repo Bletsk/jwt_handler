@@ -18,17 +18,15 @@ module JWTHandler
   def validate_token
     
     # Скипаем валидацию, если в контроллере аутентификации
-    return if ['api/v1/auth'].include?(params[:controller]) || ['mail_auth'].include?(params[:controller]) || ['password_reset'].include?(params[:controller])
+    return if ['api/v1/auth'].include?(params[:controller]) || ['mail_auth'].include?(params[:controller]) || ['password_reset'].include?(params[:controller]) || ['developer'].include?(params[:controller])
 
     # Скипаем валидацию, если запрос в режиме дебага
     return p "JWT: Page rendered in debug-mode" if check_for_debug
 
-    # @t = Thread.new do
     # Скипаем валидацию, если предоставлен секрет
     if request.headers['X-Authorization']
       # logger.info "Обнаружен секрет. Проверяю..."
       
-        # begin
       headers = {
         "X-Authorization" => get_secret()
       }
@@ -46,10 +44,10 @@ module JWTHandler
     else
       # logger.info "jwt: Секрет не задан"
 
-      # puts "original_url"
-      # p request.original_url
       uri = URI.parse(request.original_url)
       token = CGI.parse(uri.query)['token'][0] if uri.query
+      token = request.headers['token'] unless token
+      
       if token
         redirect_url = "/" + get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.original_url.split('?').first
 
@@ -60,31 +58,12 @@ module JWTHandler
         validate_jwt
       end
     end
-        # rescue HTTParty::Error => e
-        #   p "JWT-handler: HTTParty error"
-        #   p e.inspect
-        # rescue StandardError => e
-        #   "JWT-handler: StandardError"
-        #   p e.inspect
-        # end
-
-        # return render json: {
-        #   error: "X-Authorization error"
-        # }, :status => 401
-      # end
-        
-      # Скипаем валидацию в development-окружении
-
-    # end
   end
 
   def validate_jwt
     return if (Rails.env.development? || Rails.env.test?) && !(ENV['jwt_ignore_dev'] == "true")
 
     # logger.info "jwt: Провожу классическую валидацию"
-
-    p "request_referer"
-    p request.referer
 
     jwt_validation_path = "http://" + get_auth_service_path + '/api/v1/session/validate'
     referer = get_ref_link
@@ -103,7 +82,8 @@ module JWTHandler
       # logger.info "Валидация не успешна"
 
       redirect_url = "/" + get_auth_service_path
-      redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
+      redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
+      # redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
 
       #checkout for ajax requests
       return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
@@ -113,7 +93,7 @@ module JWTHandler
       #if jwt updated
       # logger.info "Валидация успешна"
       unless parsed_body['updated_token'].blank?
-        cookies['JWT'] = { :value => parsed_body['updated_token'], :domain => get_domain_name, :path => '/' }
+        cookies['JWT'] = { :value => parsed_body['updated_token'], :path => '/' }
       end
     end
   end
@@ -121,7 +101,7 @@ module JWTHandler
   def get_jwt
     #Remember that JWT structure is "JWT <token>"
     begin
-      return request.headers['Authorization'] || request.cookies["JWT"] || ""
+      return request.headers['JWT'] || request.cookies["Authorization"] || ""
     rescue
       return nil
     end
@@ -133,6 +113,7 @@ module JWTHandler
 
   def extract_jwt_payload
     token = get_jwt #"JWT <token>" split on
+    # p "token"
     # p token
     return nil if !token || token.to_s.empty?
 
@@ -179,9 +160,10 @@ module JWTHandler
       ENV['jwt_user_management_path'] || ENV['user_management_url'] || 'http://localhost:3023'
     end
 
-    def get_domain_name
-      ENV['jwt_domain_name'] || 'localhost'
-    end
+    # deprecated
+    # def get_domain_name
+    #   ENV['jwt_domain_name'] || 'localhost'
+    # end
 
     def check_for_debug
       uri = URI.parse(request.original_url)
