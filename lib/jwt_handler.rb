@@ -63,8 +63,7 @@ module JWTHandler
 
     # logger.info "jwt: Провожу классическую валидацию"
 
-    # p "request_referer"
-    # p request.referer
+    return redirect_to_auth("JWT not found") if get_jwt().blank?
 
     jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
     referer = get_ref_link
@@ -79,17 +78,17 @@ module JWTHandler
 
     #checkout for token validationn response if it return error then redirect to the auth page
     if !parsed_body['error'].blank?
+      redirect_to_auth(parsed_body['error'].to_s)
+      # logger.error "Validation error: " + parsed_body['error']
 
-      logger.error "Validation error: " + parsed_body['error']
+      # redirect_url = parsed_body['sign_in_url']
+      # redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
+      # # redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
 
-      redirect_url = parsed_body['sign_in_url']
-      redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
-      # redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
-
-      #checkout for ajax requests
-      return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
+      # #checkout for ajax requests
+      # return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
         
-      render json:{redirect_url:redirect_url}, status: 302
+      # render json:{redirect_url:redirect_url}, status: 302
     else
       #if jwt updated
       # logger.info "Валидация успешна"
@@ -168,6 +167,19 @@ module JWTHandler
     def check_for_debug
       uri = URI.parse(request.original_url)
       return uri.query && CGI.parse(uri.query)['jwt-debug'][0] == 'true'
+    end
+
+    def redirect_to_auth(error)
+      logger.error "Validation error: " + error
+
+      redirect_url = "/" + get_auth_service_path
+      redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
+      # redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
+
+      #checkout for ajax requests
+      return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
+        
+      render json:{redirect_url:redirect_url}, status: 302
     end
   end
 end
