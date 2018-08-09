@@ -101,7 +101,7 @@ module JWTHandler
   def get_jwt
     #Remember that JWT structure is "JWT <token>"
     begin
-      return request.headers['JWT'] || request.cookies["Authorization"] || ""
+      return request.headers['Authorization'] || request.cookies["JWT"] || ""
     rescue
       return nil
     end
@@ -113,8 +113,6 @@ module JWTHandler
 
   def extract_jwt_payload
     token = get_jwt #"JWT <token>" split on
-    # p "token"
-    # p token
     return nil if !token || token.to_s.empty?
 
     return JWT.decode(token, nil, false)[0]
