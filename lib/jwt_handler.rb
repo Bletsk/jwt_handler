@@ -79,7 +79,7 @@ module JWTHandler
     #checkout for token validationn response if it return error then redirect to the auth page
     if !parsed_body['error'].blank?
 
-      # logger.info "Валидация не успешна"
+      logger.error "Validation error: " + parsed_body['error'].to_s
 
       redirect_url = "/" + get_auth_service_path
       redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
