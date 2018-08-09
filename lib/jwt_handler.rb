@@ -25,7 +25,7 @@ module JWTHandler
 
     # Скипаем валидацию, если предоставлен секрет
     if request.headers['X-Authorization']
-      # logger.info "Обнаружен секрет. Проверяю..."
+      logger.info "Обнаружен секрет. Проверяю..."
       
       headers = {
         "X-Authorization" => get_secret()
@@ -42,7 +42,7 @@ module JWTHandler
           validate_jwt
       end
     else
-      # logger.info "jwt: Секрет не задан"
+      logger.info "jwt: Секрет не задан"
 
       uri = URI.parse(request.original_url)
       token = CGI.parse(uri.query)['token'][0] if uri.query
@@ -63,7 +63,7 @@ module JWTHandler
   def validate_jwt
     return if (Rails.env.development? || Rails.env.test?) && !(ENV['jwt_ignore_dev'] == "true")
 
-    # logger.info "jwt: Провожу классическую валидацию"
+    logger.info "jwt: Провожу классическую валидацию"
 
     jwt_validation_path = "http://" + get_auth_service_path + '/api/v1/session/validate'
     referer = get_ref_link
@@ -71,6 +71,8 @@ module JWTHandler
     headers = {
       "Authorization" => get_jwt()
     }
+    logger.info "headers"
+    logger.info headers
 
     validation_response = HTTParty.post(jwt_validation_path, :headers => headers, body:{redirect_url:referer}, :timeout => 20)
 
@@ -79,7 +81,7 @@ module JWTHandler
     #checkout for token validationn response if it return error then redirect to the auth page
     if !parsed_body['error'].blank?
 
-      # logger.info "Валидация не успешна"
+      logger.info "Валидация не успешна"
 
       redirect_url = "/" + get_auth_service_path
       redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
@@ -91,7 +93,7 @@ module JWTHandler
       render json:{redirect_url:redirect_url}, status: 302
     else
       #if jwt updated
-      # logger.info "Валидация успешна"
+      logger.info "Валидация успешна"
       unless parsed_body['updated_token'].blank?
         cookies['JWT'] = { :value => parsed_body['updated_token'], :path => '/' }
       end
