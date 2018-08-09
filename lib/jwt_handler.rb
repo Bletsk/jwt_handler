@@ -42,8 +42,6 @@ module JWTHandler
     else
       # logger.info "jwt: Секрет не задан"
 
-      # puts "original_url"
-      # p request.original_url
       uri = URI.parse(request.original_url)
       token = CGI.parse(uri.query)['token'][0] if uri.query
       token = request.headers['token'] unless token
@@ -58,22 +56,6 @@ module JWTHandler
         validate_jwt
       end
     end
-        # rescue HTTParty::Error => e
-        #   p "JWT-handler: HTTParty error"
-        #   p e.inspect
-        # rescue StandardError => e
-        #   "JWT-handler: StandardError"
-        #   p e.inspect
-        # end
-
-        # return render json: {
-        #   error: "X-Authorization error"
-        # }, :status => 401
-      # end
-        
-      # Скипаем валидацию в development-окружении
-
-    # end
   end
 
   def validate_jwt
@@ -98,7 +80,7 @@ module JWTHandler
     #checkout for token validationn response if it return error then redirect to the auth page
     if !parsed_body['error'].blank?
 
-      # logger.info "Валидация не успешна"
+      logger.error "Validation error: " + parsed_body['error']
 
       redirect_url = parsed_body['sign_in_url']
       redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
