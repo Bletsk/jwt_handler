@@ -174,6 +174,9 @@ module JWTHandler
 
       redirect_url = get_auth_service_path
       redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
+
+      logger.info "redirect_url"
+      logger.info redirect_url
       # redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
 
       #checkout for ajax requests
