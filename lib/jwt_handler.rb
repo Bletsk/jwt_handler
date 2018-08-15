@@ -31,7 +31,7 @@ module JWTHandler
         "X-Authorization" => get_secret()
       }
 
-      path = "https://" + get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
+      path = "http://" + get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
       response = HTTParty.get(path, :headers => headers, :timeout => 20)
       logger.info headers
       logger.info response
@@ -67,7 +67,7 @@ module JWTHandler
 
     return redirect_to_auth("JWT not found") if get_jwt().blank?
 
-    jwt_validation_path = "https://" + get_auth_service_path + '/api/v1/session/validate'
+    jwt_validation_path = "http://" + get_auth_service_path + '/api/v1/session/validate'
     referer = get_ref_link
 
     headers = {
