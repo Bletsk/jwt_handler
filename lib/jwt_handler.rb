@@ -31,7 +31,11 @@ module JWTHandler
         "X-Authorization" => get_secret()
       }
 
-      path = "http://" + get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
+      if Rails.env.beta?
+        path = "http://" + get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
+      else
+        path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
+      end
       response = HTTParty.get(path, :headers => headers, :timeout => 20)
       logger.info headers
       logger.info response
@@ -49,7 +53,11 @@ module JWTHandler
       token = request.headers['token'] unless token
       
       if token
-        redirect_url = "/" + get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.original_url.split('?').first
+        if Rails.env.beta?
+          redirect_url = "/" + get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.original_url.split('?').first
+        else
+          redirect_url = get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.original_url.split('?').first
+        end
 
         return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
         
@@ -67,7 +75,12 @@ module JWTHandler
 
     return redirect_to_auth("JWT not found") if get_jwt().blank?
 
-    jwt_validation_path = "http://" + get_auth_service_path + '/api/v1/session/validate'
+    if Rails.env.beta?
+      jwt_validation_path = "http://" + get_auth_service_path + '/api/v1/session/validate'
+    else
+      jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
+    end
+    
     referer = get_ref_link
 
     headers = {
@@ -176,7 +189,7 @@ module JWTHandler
     def redirect_to_auth(error)
       logger.error "Validation error: " + error
 
-      redirect_url = "/" + get_auth_service_path
+      redirect_url = Rails.env.beta? ? "/" : "" + get_auth_service_path
       redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
       # redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
 
