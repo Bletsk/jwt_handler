@@ -177,6 +177,8 @@ module JWTHandler
 
     def redirect_to_auth(error)
       logger.error "Validation error: " + error
+      logger.info request.original_url
+      puts request.original_url
 
       redirect_url = (Rails.env.beta? ? "/" : "") + get_auth_service_path
       if Rails.env.beta?
