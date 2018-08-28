@@ -31,8 +31,8 @@ module JWTHandler
 
       path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
       response = HTTParty.get(path, :headers => headers, :timeout => 20)
-      logger.info headers
-      logger.info response
+      # logger.info headers
+      # logger.info response
       if response.code.to_s.include?("20")
           return @user = JSON.parse(response.body)
       else
@@ -170,7 +170,7 @@ module JWTHandler
     def redirect_to_auth(error)
       logger.error "Validation error: " + error
 
-      redirect_url = get_auth_service_path
+      redirect_url = Rails.env.beta? ? "/" : "" + get_auth_service_path
       redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
 
       logger.info "redirect_url"
