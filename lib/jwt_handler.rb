@@ -31,11 +31,8 @@ module JWTHandler
         "X-Authorization" => get_secret()
       }
 
-      if Rails.env.beta?
-        path = "http://" + get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
-      else
-        path = get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
-      end
+      path = (Rails.env.beta? ? "http://" : "") + get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
+
       response = HTTParty.get(path, :headers => headers, :timeout => 20)
       logger.info headers
       logger.info response
@@ -53,11 +50,9 @@ module JWTHandler
       token = request.headers['token'] unless token
       
       if token
-        if Rails.env.beta?
-          redirect_url = "/" + get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.original_url.split('?').first
-        else
-          redirect_url = get_user_management_path + '/api/v1/auth/token/' + token + '?redirect_url=' + request.original_url.split('?').first
-        end
+        redirect_url = (Rails.env.beta? ? "/" : "") +
+          get_user_management_path + '/api/v1/auth/token/'+
+          token + '?redirect_url=' + request.original_url.split('?').first
 
         return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
         
@@ -75,11 +70,7 @@ module JWTHandler
 
     return redirect_to_auth("JWT not found") if get_jwt().blank?
 
-    if Rails.env.beta?
-      jwt_validation_path = "http://" + get_auth_service_path + '/api/v1/session/validate'
-    else
-      jwt_validation_path = get_auth_service_path + '/api/v1/session/validate'
-    end
+    jwt_validation_path = (Rails.env.beta? ? "http://" : "") + get_auth_service_path + '/api/v1/session/validate'
     
     referer = get_ref_link
 
@@ -142,8 +133,6 @@ module JWTHandler
       # @t.join
       return @user if @user
     else
-    
-    
       payload = extract_jwt_payload
       return payload['user'].to_h unless payload.nil?
       
@@ -163,40 +152,50 @@ module JWTHandler
     return {}
   end
 
-    private
-    def get_ref_link
-      ENV['jwt_referer_link'] || Rails.root
-    end
+  private
+  def get_ref_link
+    ENV['jwt_referer_link'] || Rails.root
+  end
 
-    def get_auth_service_path
-      ENV['jwt_auth_service_path'] || 'http://localhost:3001'
-    end
+  def get_auth_service_path
+    ENV['jwt_auth_service_path'] || 'http://localhost:3001'
+  end
 
-    def get_user_management_path
-      ENV['jwt_user_management_path'] || ENV['user_management_url'] || 'http://localhost:3023'
-    end
+  def get_user_management_path
+    ENV['jwt_user_management_path'] || ENV['user_management_url'] || 'http://localhost:3023'
+  end
 
-    # deprecated
-    # def get_domain_name
-    #   ENV['jwt_domain_name'] || 'localhost'
-    # end
+  # deprecated
+  # def get_domain_name
+  #   ENV['jwt_domain_name'] || 'localhost'
+  # end
 
-    def check_for_debug
-      uri = URI.parse(request.original_url)
-      return uri.query && CGI.parse(uri.query)['jwt-debug'][0] == 'true'
-    end
+  def check_for_debug
+    uri = URI.parse(request.original_url)
+    return uri.query && CGI.parse(uri.query)['jwt-debug'][0] == 'true'
+  end
 
-    def redirect_to_auth(error)
-      logger.error "Validation error: " + error
+  def redirect_to_auth(error)
+    logger.error "Validation error: " + error
 
-      redirect_url = (Rails.env.beta? ? "/" : "") + get_auth_service_path
+    redirect_url = (Rails.env.beta? ? "/" : "") + get_auth_service_path
+    if Rails.env.beta?
+      redirect_url += '?redirect_url=' + request.original_url.split('trainingspace.online')[1] || request.original_url
+    else
       redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
-      # redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
-
-      #checkout for ajax requests
-      return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
-        
-      render json:{redirect_url:redirect_url}, status: 302
     end
+    # redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
+
+    #checkout for ajax requests
+    return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
+      
+    render json:{redirect_url:redirect_url}, status: 302
+  end
+
+  def add_param(url, param_name, param_value)
+    uri = URI(url)
+    params = URI.decode_www_form(uri.query || "") << [param_name, param_value]
+    uri.query = URI.encode_www_form(params)
+    uri.to_s
   end
 end
