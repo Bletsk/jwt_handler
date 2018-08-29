@@ -177,6 +177,7 @@ module JWTHandler
 
     def redirect_to_auth(error)
       logger.error "Validation error: " + error
+      logger.info "TEST"
       # logger.info request.original_url
       # puts request.original_url
 
