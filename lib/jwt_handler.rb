@@ -177,16 +177,14 @@ module JWTHandler
 
     def redirect_to_auth(error)
       logger.error "Validation error: " + error
-      logger.info request.original_url
-      puts request.original_url
+      # logger.info request.original_url
+      # puts request.original_url
 
-      redirect_url = (Rails.env.beta? ? "/" : "") + get_auth_service_path
       if Rails.env.beta?
-        redirect_url += '?redirect_url=' + request.original_url.split('trainingspace.online')[1] || request.original_url
+        redirect_url = "/#{get_auth_service_path}?redirect_url=#{ENV['RAILS_RELATIVE_URL_ROOT']}#{request.fullpath}"
       else
-        redirect_url += '?redirect_url=' + (request.original_url.split('?').first)
+        redirect_url = get_auth_service_path + '?redirect_url=' + (request.original_url.split('?').first)
       end
-      # redirect_url += '?redirect_url=' + (request.referer || request.original_url.split('?').first)
 
       #checkout for ajax requests
       return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
