@@ -100,7 +100,9 @@ module JWTHandler
         #if jwt updated
         # logger.info "Валидация успешна"
         unless parsed_body['updated_token'].blank?
-          cookies['JWT'] = { :value => parsed_body['updated_token'], :path => '/' }
+          cookies['JWT'] = Rails.env.beta? ?
+            { :value => parsed_body['updated_token'], :path => '/' } :
+            { :value => parsed_body['updated_token'], :domain => get_domain_name, :path => '/' }
         end
       end
     end
