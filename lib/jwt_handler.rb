@@ -32,6 +32,8 @@ module JWTHandler
         }
 
         path = (Rails.env.beta? ? "http://" : "") + get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
+        logger.info "PATH"
+        logger.info path
 
         response = HTTParty.get(path, :headers => headers, :timeout => 20)
         logger.info headers
