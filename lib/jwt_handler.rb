@@ -167,7 +167,7 @@ module JWTHandler
 
     def get_user_management_path
       value = ENV['jwt_user_management_path'] || ENV['user_management_url'] || 'http://localhost:3023'
-      value[0] = '' if value.first == '/'
+      value = value[1..-1] if value.first == '/'
       return value
     end
 
