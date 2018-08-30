@@ -32,8 +32,8 @@ module JWTHandler
         }
 
         path = (Rails.env.beta? ? "http://" : "") + get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
-        logger.info "PATH"
-        logger.info path
+        # logger.info "PATH"
+        # logger.info path
 
         response = HTTParty.get(path, :headers => headers, :timeout => 20)
         logger.info headers
@@ -171,10 +171,10 @@ module JWTHandler
       return value
     end
 
-    # deprecated
-    # def get_domain_name
-    #   ENV['jwt_domain_name'] || 'localhost'
-    # end
+    # deprecated for beta3
+    def get_domain_name
+      ENV['jwt_domain_name'] || 'localhost'
+    end
 
     def check_for_debug
       uri = URI.parse(request.original_url)
@@ -187,7 +187,12 @@ module JWTHandler
       # puts request.original_url
 
       if Rails.env.beta?
-        redirect_url = "/#{get_auth_service_path}?redirect_url=#{ENV['RAILS_RELATIVE_URL_ROOT']}#{request.fullpath}"
+        redirect_url = "/#{get_auth_service_path}"
+        if ENV['RAILS_RELATIVE_URL_ROOT']
+          redirect_url += "?redirect_url=#{ENV['RAILS_RELATIVE_URL_ROOT']}#{request.fullpath}"
+        else
+          logger.error("RAILS_RELATIVE_URL_ROOT is not defined in environment!")
+        end
       else
         redirect_url = get_auth_service_path + '?redirect_url=' + (request.original_url.split('?').first)
       end
