@@ -102,9 +102,14 @@ module JWTHandler
         #if jwt updated
         # logger.info "Валидация успешна"
         unless parsed_body['updated_token'].blank?
-          cookies['JWT'] = Rails.env.beta? ?
-            { :value => parsed_body['updated_token'], :path => '/' } :
-            { :value => parsed_body['updated_token'], :domain => get_domain_name, :path => '/' }
+          cookies['JWT'] = {
+            value: parsed_body['updated_token'],
+            domain: get_domain_name,
+            path: '/'
+          }
+          # cookies['JWT'] = Rails.env.beta? ?
+          #   { :value => parsed_body['updated_token'], :path => '/' } :
+          #   { :value => parsed_body['updated_token'], :domain => get_domain_name, :path => '/' }
         end
       end
     end
@@ -171,9 +176,12 @@ module JWTHandler
       return value
     end
 
-    # deprecated for beta3
     def get_domain_name
-      ENV['jwt_domain_name'] || 'localhost'
+      if Rails.env.beta?
+        request.domain(2)
+      else
+        ENV['jwt_domain_name'] || 'localhost'
+      end
     end
 
     def check_for_debug
