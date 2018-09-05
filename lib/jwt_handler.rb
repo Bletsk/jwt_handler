@@ -54,7 +54,7 @@ module JWTHandler
         if token
           if ENV['RAILS_RELATIVE_URL_ROOT']
             redirect_url = "/" + get_user_management_path + '/api/v1/auth/token/' + 
-              token + '?redirect_url=' + ENV['RAILS_RELATIVE_URL_ROOT'] + request.fullpath
+              token + '?redirect_url=' + ENV['RAILS_RELATIVE_URL_ROOT'] + request.fullpath.split('?').first
           else
             redirect_url = get_user_management_path + '/api/v1/auth/token/'+
               token + '?redirect_url=' + request.original_url.split('?').first
