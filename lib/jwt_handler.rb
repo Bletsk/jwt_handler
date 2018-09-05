@@ -52,9 +52,13 @@ module JWTHandler
         token = request.headers['token'] unless token
         
         if token
-          redirect_url = (Rails.env.beta? ? "/" : "") +
-            get_user_management_path + '/api/v1/auth/token/'+
-            token + '?redirect_url=' + request.original_url.split('?').first
+          if ENV['RAILS_RELATIVE_URL_ROOT']
+            redirect_url = "/" + get_user_management_path + '/api/v1/auth/token/' + 
+              token + '?redirect_url=' + ENV['RAILS_RELATIVE_URL_ROOT'] + request.fullpath
+          else
+            redirect_url = get_user_management_path + '/api/v1/auth/token/'+
+              token + '?redirect_url=' + request.original_url.split('?').first
+          end
 
           return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
           
