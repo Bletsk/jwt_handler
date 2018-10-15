@@ -27,23 +27,38 @@ module JWTHandler
       if request.headers['X-Authorization']
         # logger.info "Обнаружен секрет. Проверяю..."
         
-        headers = {
-          "X-Authorization" => get_secret()
-        }
+        # Если гем находится в user-management, то валидация по апи-токену
+        # происходит путем обращения в соответствующий контроллер
+        if ENV['service_name'] && ENV['service_name'] == "user-management"
+          user_data = auth_with_api_token(request.headers['X-Authorization'])
 
-        path = (Rails.env.beta? ? "http://" : "") + get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
-        # logger.info "PATH"
-        # logger.info path
-
-        response = HTTParty.get(path, :headers => headers, :timeout => 20)
-        logger.info headers
-        logger.info response
-        if response.code.to_s.include?("20")
-            return @user = JSON.parse(response.body)
-        else
-            # p "jwt: Секрет неверен"
+          if user_data
+            return @user = user_data
+          else
             validate_jwt
+          end
+
+        # Для прочих сервисов валидация происходит через http-запрос в user-management
+        else
+          headers = {
+            "X-Authorization" => get_secret()
+          }
+
+          path = (Rails.env.beta? ? "http://" : "") + get_user_management_path + '/api/v1/auth/get_user_data_by_secret'
+          # logger.info "PATH"
+          # logger.info path
+
+          response = HTTParty.get(path, :headers => headers, :timeout => 20)
+          logger.info headers
+          logger.info response
+          if response.code.to_s.include?("20")
+              return @user = JSON.parse(response.body)
+          else
+              # p "jwt: Секрет неверен"
+              validate_jwt
+          end
         end
+        
       else
         # logger.info "jwt: Секрет не задан"
 
