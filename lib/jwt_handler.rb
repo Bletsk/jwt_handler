@@ -29,7 +29,7 @@ module JWTHandler
         
         # Если гем находится в user-management, то валидация по апи-токену
         # происходит путем обращения в соответствующий контроллер
-        if ENV['service_name'] && ENV['service_name'] == "user-management"
+        if ENV['service_name'] && ENV['service_name'] == "user-management" && false # Нужно додумать решение, не работает
           user_data = auth_with_api_token(request.headers['X-Authorization'])
 
           if user_data
