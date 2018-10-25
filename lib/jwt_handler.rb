@@ -233,7 +233,9 @@ module JWTHandler
       end
 
       #checkout for ajax requests
-      return redirect_to redirect_url unless request.headers['HTTP_ACCEPT'].include?("application/json") 
+      unless request.headers['HTTP_ACCEPT'] && request.headers['HTTP_ACCEPT'].include?("application/json")
+        return redirect_to redirect_url 
+      end
         
       render json:{redirect_url:redirect_url}, status: 302
     end
